@@ -1,0 +1,29 @@
+{
+  "awss3": {
+    "tf_resource": "aws_s3_bucket",
+    "required_attrs": ["bucket"],
+    "permission_templates": {
+      "read": ["s3:GetObject"],
+      "write": ["s3:PutObject", "s3:PutObjectAcl"],
+      "list": ["s3:ListBucket"],
+      "events": []
+    },
+    "resource_arn_format": "arn:aws:s3:::{bucket}",
+    "resource_arn_objects_format": "arn:aws:s3:::{bucket}/*"
+  },
+  "awslambda": {
+    "tf_resource": "aws_lambda_function",
+    "required_attrs": ["function_name", "handler", "runtime", "filename"],
+    "permission_templates": {
+      "invoke": ["lambda:InvokeFunction"]
+    }
+  },
+  "awsec2": {
+    "tf_resource": "aws_instance",
+    "required_attrs": ["ami", "instance_type"],
+    "permission_templates": {
+      "read": ["s3:GetObject"]
+    }
+  }
+}
+ 

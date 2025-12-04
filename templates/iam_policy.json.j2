@@ -1,0 +1,13 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+  {% for p in perms %}
+    {
+      "Effect": "Allow",
+      "Action": ["{{ p.action }}"],
+      "Resource": "{{ p.resource }}"
+    }{% if not loop.last %},{% endif %}
+  {% endfor %}
+  ]
+}
+

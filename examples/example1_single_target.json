@@ -1,0 +1,32 @@
+{
+  "nodes": [
+    {
+      "id": "awss3-0",
+      "service": {
+        "serviceid": 86,
+        "serviceshortname": "awss3",
+        "bucket": "example-bucket-123"
+      }
+    },
+    {
+      "id": "awslambda-1",
+      "service": {
+        "serviceid": 48,
+        "serviceshortname": "awslambda",
+        "function_name": "exampleLambdaFunction",
+        "handler": "app.handler",
+        "runtime": "python3.9",
+        "filename": "lambda.zip"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-qRJT",
+      "sourceId": "awss3-0",
+      "targetId": "awslambda-1",
+      "operation": ["events"]
+    }
+  ]
+}
+

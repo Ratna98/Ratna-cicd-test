@@ -1,0 +1,26 @@
+{
+  "perms": {
+    "awss3-0": [
+      {
+        "action": "s3:GetObject",
+        "resource": "*",
+        "edge": {
+          "id": "e-di0K",
+          "sourceId": "awss3-0",
+          "targetId": "awsec2-G4s8",
+          "operation": [
+            "read"
+          ]
+        }
+      }
+    ]
+  },
+  "wires": [
+    {
+      "type": "s3_to_lambda",
+      "source": "awss3-0",
+      "target": "awslambda-1",
+      "bucket": "example-bucket-456"
+    }
+  ]
+}

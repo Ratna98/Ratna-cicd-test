@@ -1,0 +1,94 @@
+# Generated Terraform for node {{ node.id }} ({{ node.service.serviceshortname }})
+
+{% set m = map_entry %}
+{% if m.tf_resource == "aws_s3_bucket" %}
+resource "aws_s3_bucket" "{{ node.id }}" {
+  bucket = "{{ node.service.get('bucket','my-bucket') }}"
+}
+{% endif %}
+
+{% if m.tf_resource == "aws_lambda_function" %}
+resource "aws_iam_role" "{{ node.id }}_exec_role" {
+  name = "{{ node.id }}-exec-role"
+  assume_role_policy = jsonencode({
+    "Version":"2012-10-17",
+    "Statement":[{"Effect":"Allow","Principal":{"Service":"lambda.amazonaws.com"},"Action":"sts:AssumeRole"}]
+  })
+}
+
+resource "aws_iam_role_policy" "{{ node.id }}_exec_policy" {
+  name = "{{ node.id }}-exec-policy"
+  role = aws_iam_role.{{ node.id }}_exec_role.id
+  policy = jsonencode({
+    "Version":"2012-10-17",
+    "Statement":[
+      {
+        "Effect":"Allow",
+        "Action":["logs:CreateLogGroup","logs:CreateLogStream","logs:PutLogEvents"],
+        "Resource":"arn:aws:logs:*:*:*"
+      }
+    ]
+  })
+}
+
+resource "aws_lambda_function" "{{ node.id }}" {
+  filename      = "{{ node.service.get('filename','lambda.zip') }}"
+  function_name = "{{ node.service.get('function_name', node.id) }}"
+  handler       = "{{ node.service.get('handler','handler.handler') }}"
+  runtime       = "{{ node.service.get('runtime','python3.9') }}"
+  role          = aws_iam_role.{{ node.id }}_exec_role.arn
+}
+{% endif %}
+
+{% if m.tf_resource == "aws_instance" %}
+resource "aws_iam_role" "{{ node.id }}_role" {
+  name = "{{ node.id }}-role"
+  assume_role_policy = jsonencode({
+    "Version":"2012-10-17",
+    "Statement":[{"Action":"sts:AssumeRole","Principal":{"Service":"ec2.amazonaws.com"},"Effect":"Allow"}]
+  })
+}
+
+resource "aws_iam_role_policy" "{{ node.id }}_policy" {
+  name = "{{ node.id }}-policy"
+  role = aws_iam_role.{{ node.id }}_role.id
+  policy = jsonencode({
+    "Version":"2012-10-17",
+    "Statement":[
+    {% if perms|length == 0 %}
+      {
+        "Effect":"Allow",
+        "Action": [],
+        "Resource": "*"
+      }
+    {% else %}
+      {% for p in perms %}
+      {
+        "Effect":"Allow",
+        "Action": ["{{ p.action }}"],
+        "Resource": "{{ p.resource }}"
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    {% endif %}
+    ]
+  })
+}
+
+resource "aws_instance" "{{ node.id }}" {
+  ami           = "{{ node.service.get('ami','ami-0c55b159cbfafe1f0') }}"
+  instance_type = "{{ node.service.get('instance_type','t3.micro') }}"
+}
+{% endif %}
+
+# Wiring: S3 -> Lambda event permission
+{% for w in wires %}
+{% if w.type == "s3_to_lambda" and w.target == node.id %}
+resource "aws_lambda_permission" "{{ node.id }}_allow_s3" {
+  statement_id  = "AllowExecutionFromS3_{{ w.source }}"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.{{ node.id }}.function_name
+  principal     = "s3.amazonaws.com"
+  source_arn    = "arn:aws:s3:::{{ w.bucket }}"
+}
+{% endif %}
+{% endfor %}

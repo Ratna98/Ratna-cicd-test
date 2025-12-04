@@ -1,0 +1,47 @@
+{
+  "nodes": [
+    {
+      "id": "awss3-0",
+      "service": {
+        "serviceid": 86,
+        "serviceshortname": "awss3",
+        "bucket": "example-bucket-456"
+      }
+    },
+    {
+      "id": "awslambda-1",
+      "service": {
+        "serviceid": 48,
+        "serviceshortname": "awslambda",
+        "function_name": "exampleLambdaFunction2",
+        "handler": "app.handler",
+        "runtime": "python3.9",
+        "filename": "lambda2.zip"
+      }
+    },
+    {
+      "id": "awsec2-G4s8",
+      "service": {
+        "serviceid": 36,
+        "serviceshortname": "awsec2",
+        "ami": "ami-0c55b159cbfafe1f0",
+        "instance_type": "t3.micro"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-qRJT",
+      "sourceId": "awss3-0",
+      "targetId": "awslambda-1",
+      "operation": ["events"]
+    },
+    {
+      "id": "e-di0K",
+      "sourceId": "awss3-0",
+      "targetId": "awsec2-G4s8",
+      "operation": ["read"]
+    }
+  ]
+}
+
