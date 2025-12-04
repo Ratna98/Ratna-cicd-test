@@ -78,3 +78,5 @@ Build least-privilege IAM permissions
 Automate generation through CI/CD
 
 Extend easily to any AWS service
+
+CI test
