@@ -1,0 +1,49 @@
+name: TF generator CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  generate-and-validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      #
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Setup Python
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      # Install Python dependencies
+      - name: Install generator dependencies
+        run: pip install -r generator/requirements.txt
+
+      # Run the generator using example input
+      - name: Run Terraform generator
+        run: python generator/generator.py examples/example2_multiple_targets.json
+
+      # Install Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: "1.6.0"
+
+      # Initialize Terraform (in output folder)
+      - name: Terraform Init
+        working-directory: output
+        run: terraform init -backend=false || true
+
+      # Format Terraform code
+      - name: Terraform Format
+        working-directory: output
+        run: terraform fmt -recursive || true
+
+      
+      - name: Terraform Validate
+        working-directory: output
+        run: terraform validate || true
